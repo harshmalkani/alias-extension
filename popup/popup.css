@@ -312,13 +312,12 @@ body {
   padding: 8px 0 4px;
 }
 
-.logo-mark {
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--violet);
-  line-height: 1;
-  letter-spacing: -1px;
-  margin-bottom: 8px;
+.setup-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  margin: 0 auto 8px;
+  display: block;
 }
 
 .setup-title {
