@@ -2,8 +2,8 @@
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const API_BASE   = 'https://alias.live/api/v1';
-const SHORT_BASE = 'https://alias.live';
+const API_HOST   = 'alias.live'; // backend always reachable via alias.live
+const API_BASE   = `https://${API_HOST}/api/v1`;
 const RECENT_MAX = 20;
 
 // ─── Install — create context menus ───────────────────────────────────────────
@@ -31,7 +31,8 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
   if (!url) return;
 
   try {
-    const shortUrl = await shortenUrl(url);
+    const { shortDomain } = await chrome.storage.local.get('shortDomain');
+    const shortUrl = await shortenUrl(url, null, shortDomain);
     await saveToRecent(shortUrl, url);
     await copyViaOffscreen(shortUrl);
     notify('Copied!', shortUrl, 'success');
@@ -44,7 +45,7 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === 'SHORTEN') {
-    shortenUrl(message.url, message.slug)
+    shortenUrl(message.url, message.slug, message.domain)
       .then(shortUrl => saveToRecent(shortUrl, message.url).then(() => sendResponse({ ok: true, shortUrl })))
       .catch(err => sendResponse({ ok: false, error: err.message }));
     return true; // keep port open for async response
@@ -67,12 +68,15 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
 // ─── Core API ─────────────────────────────────────────────────────────────────
 
-async function shortenUrl(destination, slug) {
+async function shortenUrl(destination, slug, domain = '2shr.ink') {
   const { apiKey } = await chrome.storage.local.get('apiKey');
+  // Validate domain — fall back to default if somehow invalid
+  const shortDomain = ['2shr.ink', 'alias.live'].includes(domain) ? domain : '2shr.ink';
+  const shortBase = `https://${shortDomain}`;
 
   if (apiKey) {
     // Authenticated: supports custom slug, links saved to account
-    const body = { destination };
+    const body = { destination, domain: shortDomain };
     if (slug && slug.trim()) body.slug = slug.trim();
 
     const res = await fetch(`${API_BASE}/customShort`, {
@@ -85,17 +89,17 @@ async function shortenUrl(destination, slug) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
-    return `${SHORT_BASE}/${data.data.slug}`;
+    return `${shortBase}/${data.data.slug}`;
   } else {
     // Guest: random slug, not tied to any account
-    const res = await fetch(`${SHORT_BASE}/randomShort`, {
+    const res = await fetch(`https://${API_HOST}/randomShort`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ destination }),
+      body: JSON.stringify({ destination, domain: shortDomain }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
-    return `${SHORT_BASE}/${data.data.slug}`;
+    return `${shortBase}/${data.data.slug}`;
   }
 }
 

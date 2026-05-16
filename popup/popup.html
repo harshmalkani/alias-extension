@@ -76,7 +76,7 @@
           <span class="field-hint">optional</span>
         </label>
         <div class="input-prefix-wrap">
-          <span class="input-prefix">alias.live/</span>
+          <span class="input-prefix" id="slug-prefix-text">2shr.ink/</span>
           <input
             id="input-slug"
             type="text"
@@ -137,6 +137,16 @@
     </header>
 
     <div class="settings-body">
+      <div>
+        <p class="section-label">Default Domain</p>
+        <div class="domain-picker" id="domain-picker">
+          <button type="button" class="domain-btn" data-domain="2shr.ink">2shr.ink</button>
+          <button type="button" class="domain-btn" data-domain="alias.live">alias.live</button>
+        </div>
+      </div>
+
+      <div class="settings-divider"></div>
+
       <p class="section-label">API Key</p>
       <div id="settings-connected" class="hidden">
         <p class="settings-info">

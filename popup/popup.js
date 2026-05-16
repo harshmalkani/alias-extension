@@ -1,10 +1,16 @@
 'use strict';
 
+// ─── Constants ─────────────────────────────────────────────────────────────────
+
+const DOMAIN_OPTIONS = ['2shr.ink', 'alias.live'];
+const DEFAULT_DOMAIN = '2shr.ink';
+
 // ─── State ─────────────────────────────────────────────────────────────────────
 
 let state = {
   screen: 'main', // 'setup' | 'main' | 'result' | 'settings'
   apiKey: null,
+  domain: DEFAULT_DOMAIN,
   result: null,    // { shortUrl, destination }
 };
 
@@ -30,10 +36,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function loadSettings() {
-  const { apiKey } = await chrome.storage.local.get('apiKey');
+  const { apiKey, shortDomain, setupDone } = await chrome.storage.local.get(['apiKey', 'shortDomain', 'setupDone']);
   state.apiKey = apiKey || null;
+  state.domain = DOMAIN_OPTIONS.includes(shortDomain) ? shortDomain : DEFAULT_DOMAIN;
   // First-ever open → show setup; afterwards go straight to main
-  const { setupDone } = await chrome.storage.local.get('setupDone');
   state.screen = setupDone ? 'main' : 'setup';
 }
 
@@ -58,6 +64,8 @@ function renderScreen() {
     $('account-badge').classList.toggle('hidden', !state.apiKey);
     // Show/hide slug input (only available with API key)
     $('slug-row').classList.toggle('hidden', !state.apiKey);
+    // Keep slug prefix in sync with chosen domain
+    $('slug-prefix-text').textContent = `${state.domain}/`;
   }
 
   if (state.screen === 'result' && state.result) {
@@ -70,7 +78,14 @@ function renderScreen() {
   if (state.screen === 'settings') {
     $('settings-connected').classList.toggle('hidden', !state.apiKey);
     $('settings-disconnected').classList.toggle('hidden', !!state.apiKey);
+    renderDomainPicker();
   }
+}
+
+function renderDomainPicker() {
+  document.querySelectorAll('#domain-picker .domain-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.domain === state.domain);
+  });
 }
 
 // ─── Wire events ───────────────────────────────────────────────────────────────
@@ -132,7 +147,7 @@ function wireEvents() {
     setShortenLoading(true);
 
     try {
-      const shortUrl = await chrome.runtime.sendMessageAsync({ type: 'SHORTEN', url, slug });
+      const shortUrl = await chrome.runtime.sendMessageAsync({ type: 'SHORTEN', url, slug, domain: state.domain });
       if (!shortUrl.ok) throw new Error(shortUrl.error);
       state.result = { shortUrl: shortUrl.shortUrl, destination: url };
       state.screen = 'result';
@@ -167,6 +182,19 @@ function wireEvents() {
     loadRecent();
     // Re-fill from active tab
     fillActiveTab();
+  });
+
+  // ── Domain picker ────────────────────────────────────────────────────────────
+  document.querySelectorAll('#domain-picker .domain-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const chosen = btn.dataset.domain;
+      if (chosen === state.domain) return;
+      state.domain = chosen;
+      await chrome.storage.local.set({ shortDomain: chosen });
+      renderDomainPicker();
+      // Also update slug prefix if user goes back to main
+      $('slug-prefix-text').textContent = `${state.domain}/`;
+    });
   });
 
   // ── Settings screen ──────────────────────────────────────────────────────────
@@ -225,7 +253,7 @@ async function loadRecent() {
     const li = document.createElement('li');
     li.className = 'recent-item';
 
-    const slug = shortUrl.replace('https://alias.live/', '');
+    const slug = shortUrl.replace(/^https?:\/\/[^/]+\//, '');
 
     li.innerHTML = `
       <a href="${escapeHtml(shortUrl)}" target="_blank" rel="noopener" class="recent-short" title="${escapeHtml(shortUrl)}">

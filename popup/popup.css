@@ -389,6 +389,43 @@ body {
   border: 1px solid #a7f3d0;
 }
 
+/* ── Domain picker ─────────────────────────────────────────────────────────── */
+.domain-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 3px;
+  margin-top: 6px;
+}
+
+.domain-btn {
+  padding: 5px 12px;
+  border: none;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-muted);
+  transition: background var(--transition), color var(--transition);
+  white-space: nowrap;
+}
+.domain-btn:hover { color: var(--text); }
+.domain-btn.active {
+  background: #fff;
+  color: var(--violet);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.10);
+}
+
+.settings-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 2px 0;
+}
+
 /* ── Settings screen ───────────────────────────────────────────────────────── */
 .settings-body { display: flex; flex-direction: column; gap: 10px; }
 
