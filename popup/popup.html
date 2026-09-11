@@ -12,12 +12,12 @@
   <div id="screen-setup" class="screen hidden">
     <div class="setup-hero">
       <img src="../icons/icon128.png" alt="Alias" class="setup-icon" />
-      <h1 class="setup-title">Alias URL Shortener</h1>
-      <p class="setup-sub">Connect your account to save links and use custom slugs.</p>
+      <h1 class="setup-title" data-i18n="setupTitle">Alias URL Shortener</h1>
+      <p class="setup-sub" data-i18n="setupSub">Connect your account to save links and use custom slugs.</p>
     </div>
 
     <form id="form-setup">
-      <label class="field-label" for="input-apikey">API Key</label>
+      <label class="field-label" for="input-apikey" data-i18n="apiKeyLabel">API Key</label>
       <div class="input-row">
         <input
           id="input-apikey"
@@ -27,21 +27,21 @@
           autocomplete="off"
           spellcheck="false"
         />
-        <button type="button" id="btn-toggle-key" class="icon-btn" title="Show / hide key">
+        <button type="button" id="btn-toggle-key" class="icon-btn" data-i18n-title="toggleKey" title="Show / hide key">
           <svg id="icon-eye" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
           <svg id="icon-eye-off" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
         </button>
       </div>
       <p id="setup-error" class="error-msg hidden"></p>
-      <button type="submit" id="btn-connect" class="btn btn-primary">Connect Account</button>
+      <button type="submit" id="btn-connect" class="btn btn-primary" data-i18n="connect">Connect Account</button>
     </form>
 
-    <div class="divider"><span>or</span></div>
+    <div class="divider"><span data-i18n="or">or</span></div>
 
-    <button id="btn-guest" class="btn btn-ghost">Continue as Guest</button>
+    <button id="btn-guest" class="btn btn-ghost" data-i18n="continueGuest">Continue as Guest</button>
 
     <p class="setup-footer">
-      Get an API key at
+      <span data-i18n="getKeyAt">Get an API key at</span>
       <a href="https://aliasurlshortener.com/account" target="_blank" rel="noopener">aliasurlshortener.com</a>
     </p>
   </div>
@@ -52,28 +52,28 @@
       <span class="header-logo">a/</span>
       <span id="account-badge" class="badge hidden">
         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Connected
+        <span data-i18n="connected">Connected</span>
       </span>
-      <button id="btn-settings" class="icon-btn ml-auto" title="Settings">
+      <button id="btn-settings" class="icon-btn ml-auto" data-i18n-title="settings" title="Settings">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
       </button>
     </header>
 
     <form id="form-shorten">
-      <label class="field-label" for="input-url">URL to shorten</label>
+      <label class="field-label" for="input-url" data-i18n="urlLabel">URL to shorten</label>
       <input
         id="input-url"
         type="url"
         class="input"
-        placeholder="https://example.com/very-long-url"
+        data-i18n-placeholder="urlPlaceholder" placeholder="https://example.com/very-long-url"
         autocomplete="off"
         spellcheck="false"
       />
 
       <div id="slug-row" class="slug-row hidden">
         <label class="field-label" for="input-slug">
-          Custom slug
-          <span class="field-hint">optional</span>
+          <span data-i18n="slugLabel">Custom slug</span>
+          <span class="field-hint" data-i18n="optional">optional</span>
         </label>
         <div class="input-prefix-wrap">
           <span class="input-prefix" id="slug-prefix-text">2shr.ink/</span>
@@ -81,7 +81,7 @@
             id="input-slug"
             type="text"
             class="input input-with-prefix"
-            placeholder="my-link"
+            data-i18n-placeholder="slugPlaceholder" placeholder="my-link"
             maxlength="40"
             autocomplete="off"
             spellcheck="false"
@@ -90,17 +90,48 @@
         </div>
       </div>
 
+      <div id="advanced-row" class="hidden">
+        <button type="button" id="btn-advanced" class="link-btn" data-i18n="moreOptions">More options</button>
+        <div id="advanced-fields" class="hidden">
+          <label class="field-label" for="input-password">
+            <span data-i18n="passwordLabel">Password</span>
+            <span class="field-hint" data-i18n="optional">optional</span>
+          </label>
+          <input
+            id="input-password"
+            type="text"
+            class="input"
+            data-i18n-placeholder="passwordPlaceholder"
+            placeholder="Leave empty for no password"
+            autocomplete="off"
+            spellcheck="false"
+          />
+
+          <label class="field-label" for="select-expiry" data-i18n="expiryLabel">Expires</label>
+          <select id="select-expiry" class="input">
+            <option value=""    data-i18n="expiryNever">Never</option>
+            <option value="1h"  data-i18n="expiry1h">In 1 hour</option>
+            <option value="24h" data-i18n="expiry24h">In 24 hours</option>
+            <option value="7d"  data-i18n="expiry7d">In 7 days</option>
+            <option value="30d" data-i18n="expiry30d">In 30 days</option>
+          </select>
+        </div>
+      </div>
+
       <p id="shorten-error" class="error-msg hidden"></p>
 
       <button type="submit" id="btn-shorten" class="btn btn-primary">
-        <span id="btn-shorten-text">Shorten →</span>
+        <span id="btn-shorten-text" data-i18n="shorten">Shorten →</span>
         <span id="btn-shorten-spinner" class="spinner hidden"></span>
       </button>
+
+      <!-- The other direction: paste a short link, see where it really goes. -->
+      <button type="button" id="btn-expand" class="btn btn-ghost mt-2" data-i18n="expandTitle">Where it goes</button>
     </form>
 
     <!-- Recent links -->
     <div id="recent-section" class="recent-section hidden">
-      <p class="section-label">Recent</p>
+      <p class="section-label"><span data-i18n="recent">Recent</span> <span id="recent-synced" class="field-hint hidden" data-i18n="recentSynced">From your account</span></p>
       <ul id="recent-list" class="recent-list"></ul>
     </div>
   </div>
@@ -108,37 +139,37 @@
   <!-- ── Result screen ───────────────────────────────────── -->
   <div id="screen-result" class="screen hidden">
     <header class="header">
-      <button id="btn-back" class="icon-btn" title="Back">
+      <button id="btn-back" class="icon-btn" data-i18n-title="back" title="Back">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
       </button>
       <span class="header-logo">a/</span>
     </header>
 
     <div class="result-card">
-      <p class="result-label">Your short link</p>
+      <p class="result-label" data-i18n="yourShortLink">Your short link</p>
       <a id="result-url" href="#" target="_blank" rel="noopener" class="result-link"></a>
       <p id="result-destination" class="result-destination"></p>
       <button id="btn-copy-result" class="btn btn-primary result-copy-btn">
         <svg id="icon-copy" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-        <span id="copy-label">Copy</span>
+        <span id="copy-label" data-i18n="copy">Copy</span>
       </button>
     </div>
 
-    <button id="btn-shorten-another" class="btn btn-ghost mt-2">Shorten another</button>
+    <button id="btn-shorten-another" class="btn btn-ghost mt-2" data-i18n="shortenAnother">Shorten another</button>
   </div>
 
   <!-- ── Settings overlay ────────────────────────────────── -->
   <div id="screen-settings" class="screen hidden">
     <header class="header">
-      <button id="btn-settings-back" class="icon-btn" title="Back">
+      <button id="btn-settings-back" class="icon-btn" data-i18n-title="back" title="Back">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
       </button>
-      <span class="header-logo">Settings</span>
+      <span class="header-logo" data-i18n="settings">Settings</span>
     </header>
 
     <div class="settings-body">
       <div>
-        <p class="section-label">Default Domain</p>
+        <p class="section-label" data-i18n="defaultDomain">Default Domain</p>
         <div class="domain-picker" id="domain-picker">
           <button type="button" class="domain-btn" data-domain="2shr.ink">2shr.ink</button>
           <button type="button" class="domain-btn" data-domain="alias.live">alias.live</button>
@@ -147,18 +178,45 @@
 
       <div class="settings-divider"></div>
 
-      <p class="section-label">API Key</p>
+      <p class="section-label" data-i18n="apiKeyLabel">API Key</p>
       <div id="settings-connected" class="hidden">
         <p class="settings-info">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          Account connected
+          <span data-i18n="accountConnected">Account connected</span>
         </p>
-        <button id="btn-disconnect" class="btn btn-danger">Disconnect</button>
+        <button id="btn-disconnect" class="btn btn-danger" data-i18n="disconnect">Disconnect</button>
       </div>
       <div id="settings-disconnected" class="hidden">
-        <p class="settings-info muted">No account connected. Running in guest mode.</p>
-        <button id="btn-connect-from-settings" class="btn btn-primary">Connect Account</button>
+        <p class="settings-info muted" data-i18n="noAccount">No account connected. Running in guest mode.</p>
+        <button id="btn-connect-from-settings" class="btn btn-primary" data-i18n="connect">Connect Account</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ── Guest limit upsell ──────────────────────────────── -->
+  <div id="screen-limit" class="screen hidden">
+    <div class="setup-hero">
+      <img src="../icons/icon128.png" alt="Alias" class="setup-icon" />
+      <h1 class="setup-title" data-i18n="limitHeading">Daily limit reached</h1>
+      <p class="setup-sub" data-i18n="limitBody">Guest accounts can create 5 links a day.</p>
+    </div>
+    <a id="btn-limit-cta" class="btn btn-primary" href="https://aliasurlshortener.com/register" target="_blank" rel="noopener" data-i18n="limitCta">Create a free account</a>
+    <button id="btn-limit-dismiss" class="btn btn-ghost mt-2" data-i18n="limitDismiss">Not now</button>
+  </div>
+
+  <!-- ── Expander result ─────────────────────────────────── -->
+  <div id="screen-expand" class="screen hidden">
+    <header class="header">
+      <button id="btn-expand-back" class="icon-btn" data-i18n-title="back" title="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <span class="header-logo" data-i18n="expandTitle">Where it goes</span>
+    </header>
+    <div class="result-card">
+      <p class="result-label" data-i18n="expandFinal">Final destination</p>
+      <a id="expand-final" href="#" target="_blank" rel="noopener" class="result-link"></a>
+      <p class="section-label mt-2" data-i18n="expandHops">Redirects</p>
+      <ol id="expand-hops" class="expand-hops"></ol>
     </div>
   </div>
 

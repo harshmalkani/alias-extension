@@ -4,14 +4,22 @@
 
 const DOMAIN_OPTIONS = ['2shr.ink', 'alias.live'];
 const DEFAULT_DOMAIN = '2shr.ink';
+const API_BASE = 'https://alias.live/api/v1';
+const SITE_URL = 'https://aliasurlshortener.com';
+
+/** Relative expiry presets → an absolute ISO timestamp the API accepts. */
+const EXPIRY_MS = { '1h': 3600e3, '24h': 86400e3, '7d': 7 * 86400e3, '30d': 30 * 86400e3 };
+
+const t = (key, subs) => chrome.i18n.getMessage(key, subs) || key;
 
 // ─── State ─────────────────────────────────────────────────────────────────────
 
 let state = {
-  screen: 'main', // 'setup' | 'main' | 'result' | 'settings'
+  screen: 'main', // 'setup' | 'main' | 'result' | 'settings' | 'limit' | 'expand'
   apiKey: null,
   domain: DEFAULT_DOMAIN,
   result: null,    // { shortUrl, destination }
+  expansion: null, // { final_url, hops[] }
 };
 
 // ─── DOM refs ──────────────────────────────────────────────────────────────────
@@ -23,11 +31,34 @@ const screens = {
   main:     $('screen-main'),
   result:   $('screen-result'),
   settings: $('screen-settings'),
+  limit:    $('screen-limit'),
+  expand:   $('screen-expand'),
 };
+
+/**
+ * Swap every marked node for its translation.
+ *
+ * The markup keeps its English text so the file still reads as a page, and
+ * this replaces it on load. A missing message falls back to the key, which is
+ * visible in review rather than silently blank.
+ */
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    el.title = t(el.dataset.i18nTitle);
+  });
+  document.documentElement.lang = chrome.i18n.getUILanguage?.().split('-')[0] || 'en';
+}
 
 // ─── Boot ──────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', async () => {
+  applyI18n();
   await loadSettings();
   await fillActiveTab();
   renderScreen();
@@ -62,8 +93,9 @@ function renderScreen() {
   if (state.screen === 'main') {
     // Show/hide connected badge
     $('account-badge').classList.toggle('hidden', !state.apiKey);
-    // Show/hide slug input (only available with API key)
+    // Slug, password and expiry all need an account.
     $('slug-row').classList.toggle('hidden', !state.apiKey);
+    $('advanced-row').classList.toggle('hidden', !state.apiKey);
     // Keep slug prefix in sync with chosen domain
     $('slug-prefix-text').textContent = `${state.domain}/`;
   }
@@ -73,6 +105,10 @@ function renderScreen() {
     $('result-url').textContent = shortUrl;
     $('result-url').href = shortUrl;
     $('result-destination').textContent = destination;
+  }
+
+  if (state.screen === 'expand' && state.expansion) {
+    renderExpansion(state.expansion);
   }
 
   if (state.screen === 'settings') {
@@ -103,7 +139,7 @@ function wireEvents() {
   $('form-setup').addEventListener('submit', async (e) => {
     e.preventDefault();
     const key = $('input-apikey').value.trim();
-    if (!key) return showError('setup-error', 'Please enter an API key.');
+    if (!key) return showError('setup-error', t('enterKey'));
 
     $('btn-connect').disabled = true;
     hideError('setup-error');
@@ -135,27 +171,63 @@ function wireEvents() {
     renderScreen();
   });
 
+  $('btn-advanced').addEventListener('click', () => {
+    $('advanced-fields').classList.toggle('hidden');
+  });
+
+  $('btn-expand').addEventListener('click', async () => {
+    const url = $('input-url').value.trim();
+    if (!url) return showError('shorten-error', t('enterUrl'));
+    if (!isValidUrl(url)) return showError('shorten-error', t('invalidUrl'));
+
+    hideError('shorten-error');
+    $('btn-expand').disabled = true;
+    $('btn-expand').textContent = t('expandInProgress');
+    try {
+      await expandCurrentUrl(url);
+    } catch (err) {
+      showError('shorten-error', err.message || t('expandFailed'));
+    } finally {
+      $('btn-expand').disabled = false;
+      $('btn-expand').textContent = t('expandTitle');
+    }
+  });
+
   $('form-shorten').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const url  = $('input-url').value.trim();
-    const slug = $('input-slug').value.trim();
+    const url = $('input-url').value.trim();
 
-    if (!url) return showError('shorten-error', 'Please enter a URL.');
-    if (!isValidUrl(url)) return showError('shorten-error', 'Please enter a valid http(s) URL.');
+    if (!url) return showError('shorten-error', t('enterUrl'));
+    if (!isValidUrl(url)) return showError('shorten-error', t('invalidUrl'));
 
     hideError('shorten-error');
     setShortenLoading(true);
 
     try {
-      const shortUrl = await chrome.runtime.sendMessageAsync({ type: 'SHORTEN', url, slug, domain: state.domain });
-      if (!shortUrl.ok) throw new Error(shortUrl.error);
-      state.result = { shortUrl: shortUrl.shortUrl, destination: url };
+      const res = await sendMessage({
+        type: 'SHORTEN',
+        destination: url,
+        slug: $('input-slug').value.trim(),
+        password: $('input-password').value.trim(),
+        expiresAt: expiresAtFromPreset($('select-expiry').value),
+        domain: state.domain,
+      });
+      if (!res?.ok) {
+        // A guest out of links gets the offer, not an error they cannot act on.
+        if (res?.code === 'RATE_LIMITED' && !state.apiKey) {
+          state.screen = 'limit';
+          renderScreen();
+          return;
+        }
+        throw new Error(res?.error || t('shortenFailed'));
+      }
+      state.result = { shortUrl: res.shortUrl, destination: url };
       state.screen = 'result';
       renderScreen();
       // Auto-copy
-      copyToClipboard(shortUrl.shortUrl, $('btn-copy-result'), $('copy-label'));
+      copyToClipboard(res.shortUrl, $('btn-copy-result'), $('copy-label'));
     } catch (err) {
-      showError('shorten-error', err.message || 'Could not shorten the URL. Please try again.');
+      showError('shorten-error', err.message || t('shortenFailed'));
     } finally {
       setShortenLoading(false);
     }
@@ -178,6 +250,8 @@ function wireEvents() {
     state.screen = 'main';
     $('input-url').value = '';
     $('input-slug').value = '';
+    $('input-password').value = '';
+    $('select-expiry').value = '';
     renderScreen();
     loadRecent();
     // Re-fill from active tab
@@ -214,20 +288,78 @@ function wireEvents() {
     state.screen = 'setup';
     renderScreen();
   });
+
+  // ── Guest-limit upsell ───────────────────────────────────────────────────────
+  $('btn-limit-dismiss').addEventListener('click', () => {
+    state.screen = 'main';
+    renderScreen();
+  });
+  $('btn-limit-cta').href = `${SITE_URL}/register`;
+
+  // ── Expander ─────────────────────────────────────────────────────────────────
+  $('btn-expand-back').addEventListener('click', () => {
+    state.expansion = null;
+    state.screen = 'main';
+    renderScreen();
+    loadRecent();
+  });
+}
+
+// ─── Expander ──────────────────────────────────────────────────────────────────
+
+function renderExpansion({ final_url, hops = [] }) {
+  $('expand-final').textContent = final_url;
+  $('expand-final').href = final_url;
+
+  const list = $('expand-hops');
+  list.innerHTML = '';
+  hops.forEach(({ url, status, ms }) => {
+    const li = document.createElement('li');
+    li.className = 'expand-hop';
+
+    const a = document.createElement('span');
+    a.className = 'expand-hop-url';
+    a.textContent = url;
+    a.title = url;
+
+    const meta = document.createElement('span');
+    meta.className = 'expand-hop-meta';
+    // ms is absent for a hop that was never fetched — showing 0 there would
+    // claim a speed nobody measured.
+    meta.textContent = ms === undefined ? String(status) : `${status} · ${t('expandTook', [String(ms)])}`;
+
+    li.append(a, meta);
+    list.appendChild(li);
+  });
+}
+
+/** Ask the service worker to resolve a short link's redirect chain. */
+async function expandCurrentUrl(url) {
+  const res = await sendMessage({ type: 'EXPAND', url });
+  if (!res?.ok) throw new Error(res?.error || t('expandFailed'));
+  state.expansion = res.result;
+  state.screen = 'expand';
+  renderScreen();
+}
+
+/** A preset like '7d' → the absolute ISO timestamp the API wants. */
+function expiresAtFromPreset(preset) {
+  const ms = EXPIRY_MS[preset];
+  return ms ? new Date(Date.now() + ms).toISOString() : undefined;
 }
 
 // ─── API helpers ───────────────────────────────────────────────────────────────
 
 async function validateAndSaveKey(key) {
   // Make a lightweight authenticated request to confirm the key works
-  const res = await fetch('https://alias.live/api/v1/links?limit=1', {
+  const res = await fetch(`${API_BASE}/links?limit=1`, {
     headers: { 'X-Api-Key': key },
   });
   if (res.status === 401 || res.status === 403) {
-    throw new Error('Invalid API key. Please check and try again.');
+    throw new Error(t('keyInvalid'));
   }
   if (!res.ok) {
-    throw new Error(`Could not verify key (HTTP ${res.status}). Try again.`);
+    throw new Error(t('keyUnverified', [String(res.status)]));
   }
   await chrome.storage.local.set({ apiKey: key });
 }
@@ -241,6 +373,9 @@ async function loadRecent() {
   const section = $('recent-section');
   const list = $('recent-list');
   list.innerHTML = '';
+
+  // Say when the list is the account's history rather than this browser's.
+  $('recent-synced').classList.toggle('hidden', !recent.some(r => r.synced));
 
   if (!recent.length) {
     section.classList.add('hidden');
@@ -260,7 +395,7 @@ async function loadRecent() {
         ${escapeHtml(slug)}
       </a>
       <span class="recent-dest" title="${escapeHtml(destination)}">${escapeHtml(destination)}</span>
-      <button class="icon-btn recent-copy-btn" title="Copy">
+      <button class="icon-btn recent-copy-btn" title="${escapeHtml(t('copy'))}">
         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
       </button>`;
 
@@ -279,10 +414,10 @@ async function copyToClipboard(text, btn, labelEl) {
     await navigator.clipboard.writeText(text);
     if (btn) {
       btn.classList.add('copied');
-      if (labelEl) labelEl.textContent = 'Copied!';
+      if (labelEl) labelEl.textContent = t('copied');
       setTimeout(() => {
         btn.classList.remove('copied');
-        if (labelEl) labelEl.textContent = 'Copy';
+        if (labelEl) labelEl.textContent = t('copy');
       }, 2000);
     }
   } catch {
@@ -328,15 +463,11 @@ function escapeHtml(str) {
 
 function sendMessage(msg) {
   return new Promise((resolve) => {
-    chrome.runtime.sendMessage(msg, resolve);
-  });
-}
-
-// Promisify chrome.runtime.sendMessage for SHORTEN (needs response handling)
-chrome.runtime.sendMessageAsync = (msg) =>
-  new Promise((resolve, reject) => {
     chrome.runtime.sendMessage(msg, (response) => {
-      if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
+      // A dead port resolves undefined rather than throwing at the call site.
+      if (chrome.runtime.lastError) resolve({ ok: false, error: chrome.runtime.lastError.message });
       else resolve(response);
     });
   });
+}
+
