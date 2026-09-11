@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Alias — URL Shortener",
-  "short_name": "Alias",
-  "version": "1.0.0",
-  "description": "Shorten any URL instantly with alias.live. Right-click any link or page, or open the popup.",
+  "name": "__MSG_extName__",
+  "short_name": "__MSG_extShortName__",
+  "version": "1.1.0",
+  "default_locale": "en",
+  "description": "__MSG_extDescription__",
 
   "permissions": [
     "contextMenus",
@@ -23,7 +24,7 @@
 
   "action": {
     "default_popup": "popup/popup.html",
-    "default_title": "Alias URL Shortener",
+    "default_title": "__MSG_actionTitle__",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
