@@ -1,7 +1,7 @@
 {
   "extName":        { "message": "Alias — Acortador de URL" },
   "extShortName":   { "message": "Alias" },
-  "extDescription": { "message": "Acorta cualquier URL al instante. Haz clic derecho en un enlace o una página, o abre la ventana. Expande un enlace corto para ver adónde lleva realmente." },
+  "extDescription": { "message": "Acorta cualquier URL al instante. Clic derecho en un enlace o página, o abre la ventana. Expande un enlace y mira adónde lleva." },
   "actionTitle":    { "message": "Alias, acortador de URL" },
 
   "menuShortenPage": { "message": "Acortar la URL de esta página" },
